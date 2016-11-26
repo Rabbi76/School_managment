@@ -1,0 +1,266 @@
+-------------------------
+|   Admin Info Table    |
+-------------------------
+
+create table admin_info
+(
+admin_id varchar2(40),
+full_name varchar2(30),
+address varchar2(100),
+phone number(20),
+email varchar2(20),
+constraint teacher_name_pk primary key(admin_id)
+)
+
+insert into admin_info values ('A-2010-001','Rakib','Moghbazer, Dhaka',0191000000,'rakib@live.com');
+
+
+-------------------------
+|  Teacher Info Table   |
+-------------------------
+
+create table teacher_info
+(
+teacher_id varchar2(40),
+full_name varchar2(30),
+address varchar2(100),
+phone number(20),
+email varchar2(20),
+constraint teac_name_pk primary key(teacher_id)
+)
+
+insert into teacher_info values ('T-2010-001','Md. Kobir Khan','1/1 Greenway Moghbazer, Dhaka',01919001122,'kobir12@live.com');
+insert into teacher_info values ('T-2010-002','Mrs. Riya','1/1 mohakhali, Dhaka',01770011919,'riya00@gmail.com');
+
+-------------------------
+|  Parent Info Table   |
+-------------------------
+desc parent_info
+
+create table parent_info
+(
+parent_id varchar2(40),
+full_name varchar2(30),
+address varchar2(100),
+phone number(20),
+email varchar2(20),
+constraint parent_name_pk primary key(parent_id)
+)
+
+insert into parent_info values ('P-2010-001','Md. Monir Khan','1/1 Greenway Moghbazer, Dhaka',01919001122,'monir@live.com');
+insert into parent_info values ('P-2010-002','Mrs. Jannat ','1/1 mohakhali, Dhaka',01770011919,'jannat@gmail.com');
+
+-------------------------
+|  student Info Table   |
+-------------------------
+select * from student_info
+
+create table student_info
+(
+student_id varchar2(40),
+full_name varchar2(30),
+father_name varchar2(30),
+mother_name varchar2(30),
+address varchar2(100),
+cls number(20),
+phone number(20),
+email varchar2(20),
+class_pos varchar2(20),
+constraint stu_name_pk primary key(student_id)
+)
+
+insert into student_info values ('S-2010-001','Md. Abir Khan','Md. Monir Khan','Mrs Bali Khan','1/1 Greenway Moghbazer, Dhaka',10,01919001122,'abir@live.com','A+');
+insert into student_info values ('S-2011-002','Tara Khan','Md. Monir Khan','Mrs Bali Khan','1/1 Greenway Moghbazer, Dhaka',7,01919001122,'tara@gmail.com','B+');
+insert into student_info values ('S-2010-003','Sifat Chowdoey','Md. Jokib Chowdoey','Mrs Jannat Chowdoey','Banani, Dhaka',9,0170000,'sifat@live.com','A');
+-------------------
+|   user Table    |
+-------------------
+drop table school_user_login
+create table school_user_login
+(
+user_name varchar2(40),
+password varchar2(20),
+user_type varchar2(10),
+constraint log_id_pk primary key (user_name,user_type)
+)
+
+insert into school_user_login values ('A-2010-001','1234','admin');
+insert into school_user_login values ('T-2010-001','1234','teacher');
+insert into school_user_login values ('P-2010-001','1234','parent');
+insert into school_user_login values ('S-2010-001','1234','student');
+
+select * from school_user_login
+
+-------------------------
+|  student+parent view  |
+-------------------------
+create or replace view stu_par_view
+as 
+select A.student_id, A.full_name, A.father_name, B.address, B.email, B.phone  
+from student_info A, parent_info B
+where A.father_name=B.full_name or A.mother_name=B.full_name ;
+
+-------------------------
+|  student+parent Table  |
+-------------------------
+
+
+create table student_parent
+(
+st_id varchar2(40),
+pr_id varchar2(30),
+constraint st_pr_pk primary key(st_id,pr_id),
+constraint pa_st_fk foreign key(pr_id) references parent_info(parent_id),
+constraint st_pa_fk foreign key(st_id) references student_info(student_id)
+)
+
+insert into student_parent values('S-2010-001','P-2010-001');
+insert into student_parent values('S-2010-002','P-2010-001');
+insert into student_parent values('S-2010-003','P-2010-002');
+
+-----------------------------------------------
+|  Subject table with auto increment trigger   |
+-----------------------------------------------
+drop table subject
+
+create table subject
+(
+subject_id number(10),
+subject_name varchar2(30),
+cls number(30),
+te_id varchar2(30) null,
+class_time varchar2(20),
+day varchar2(40),
+year varchar2(20),
+constraint subject_pk primary key(subject_id),
+constraint sb_te_fk foreign key(te_id) references teacher_info(teacher_id)
+)
+
+DROP SEQUENCE subject_id_seq
+
+CREATE SEQUENCE subject_id_seq
+START WITH     1
+INCREMENT BY   1
+NOCACHE
+NOCYCLE;
+
+create or replace trigger sub_id_incre
+before insert on subject
+for each row
+begin
+select subject_id_seq.nextval
+into :new.subject_id
+from dual;
+end;
+
+insert into subject values(null, 'Bangla', 10, 'T-2010-001', '10:30 am-12:30 pm','sun/mon','2015');
+insert into subject values(null, 'English', 9, 'T-2010-002', '01:30 pm-02:30 pm','mon/tues','2015');
+insert into subject values(null, 'Maths', 9, 'T-2010-001', '01:30 pm-02:30 pm','sun/thu','2016');
+insert into subject values(null, 'English', 10, 'T-2010-002', '03:30 pm-05:30 pm','wed/thu','2016');
+
+---------------------------
+|  student+subject Table  |
+---------------------------
+drop table student_sub
+
+create table student_sub
+(
+sub_id number(20),
+St_id varchar2(30),
+total_mark varchar2(10) null,
+gread varchar2(10) null,
+mid_mark varchar2(10) null,
+final_mark varchar2(10) null,
+year varchar2(10),
+constraint stb_stu_pk primary key(st_id,sub_id),
+constraint sub_st_fk foreign key(sub_id) references subject(subject_id),
+constraint st_sub_fk foreign key(st_id) references student_info(student_id)
+)
+
+-----------------------------------------------
+|  notice table with auto increment trigger   |
+-----------------------------------------------
+drop table notice
+
+create table notice
+(
+notice_id number(5),
+notice_name varchar2(40),
+detalis varchar2(150),
+notice_type varchar2(30),
+notice_for varchar2(10),
+date_time date,
+constraint noti_id_pk primary key(notice_id),
+constraint note_type_chk check (notice_type in ('Picnic', 'Impornant Date','School Off','New Rule','volunteer', 'Sports','File','Else')),
+constraint note_for_chk check (notice_for in ('General', 'Teacher','Parent','Student'))
+)
+
+create sequence notice_id_seq
+START WITH     1
+INCREMENT BY   1
+NOCACHE
+NOCYCLE;
+
+create or replace trigger notice_id_incre
+before insert on notice
+for each row
+begin
+select notice_id_seq.nextval
+into :new.notice_id
+from dual;
+end;
+
+
+
+insert into notice values (null,'PicNic Time','Your Picnic Date is fixed.Class 9 & 10 only go to the picnic. The date is 10/8/2016. For details contact the booth.','Picnic','General');
+insert into notice values (null,'Important Date','Your Picnic Date is fixed. The date is 10/8/2016.','Else');
+insert into notice values (null,'School Off','Your Picnic Date is 10/8/2016. For this the school is off.','School Off');
+insert into notice values (null,'New Rule','New teacher rule is create. For details check our mail.','New Rule');
+insert into notice values (null,'volunteer Wanted','For the picnic some volunteer wanted. For details contact the booth.  ','volunteer');
+insert into notice values (null,'Sports Date','Due to picnic Sports date is changed. New sports date is announced later.  ','Sports');
+insert into notice values (null,'File Download','Your assignment home page and leave application from is Now here.','File');
+
+-----------------------------------------------
+|  Comment table with auto increment trigger   |
+-----------------------------------------------
+select * from commentes
+
+desc commentes 
+
+drop table commentes
+
+create table commentes
+(
+comment_id number(5),
+name varchar2(40),
+mail varchar2(50),
+time date,
+details varchar2(100),
+constraint comm_id_pk primary key(comment_id)
+)
+
+create sequence comment_id_seq
+START WITH     1
+INCREMENT BY   1
+NOCACHE
+NOCYCLE;
+
+create or replace trigger comment_id_incre
+before insert on commentes
+for each row
+begin
+select comment_id_seq.nextval
+into :new.comment_id
+from dual;
+end;
+
+
+insert into commentes values(null,'Mr.Rahim','rahim@gmail.com',to_date('2016/07/31:12:00:00AM','yyyy/mm/dd:hh:mi:ssam'),'Your new system is good. Thanks for update');
+insert into commentes values(null,'Sazit','sajit779@livel.com',to_date('2016/08/8:8:00:00AM','yyyy/mm/dd:hh:mi:ssam'),'Thanks for new system');
+
+create or replace procedure getResult(id in student_info.student_id%type,stu_res out student_info.total_result%type )
+is
+begin
+select total_result into stu_res from student_info 
+where student_id = id
+end;
